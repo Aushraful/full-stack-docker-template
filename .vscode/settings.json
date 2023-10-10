@@ -1,0 +1,4 @@
+{
+    "intelephense.environment.phpVersion": "8.2",
+    "phpcs.executablePath": "src/api/vendor/bin/phpcs"
+}

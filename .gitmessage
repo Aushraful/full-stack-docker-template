@@ -1,0 +1,13 @@
+[prefix] [backlog no.] [Contents of response]
+
+# ==== Please copy and use the corresponding prefix from below. ===
+# :pencil2: Add: => Addition of new functions/files, etc.
+# :bug: Fix: => Bug fixes
+# :up: Update: => Changes to existing functions and files other than bug fixes
+# :shower: Remove: => Deleting functions/files
+
+# ==== Template Example ===
+# :pencil2: Add: [INCIDENT-xxxx] Correspondence contents
+
+# [Details of supported content]
+# =======================================================

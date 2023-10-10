@@ -1,0 +1,96 @@
+version: '3.8'
+
+networks:
+  logicbreaker:
+    driver: bridge
+    name: logicbreaker
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    container_name: api
+    depends_on:
+      - mysql
+    ports:
+      - 9000:9000
+    volumes:
+      - ./src/api:/var/www/api
+    networks:
+      - logicbreaker
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/node/Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "5000:5000"
+      - "24678:24678" # For frontend ws
+    volumes:
+      - ./src/frontend:/var/www/frontend
+    networks:
+      - logicbreaker
+    command: 'yarn dev'
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    container_name: nginx
+    ports:
+      - "8000:80"
+      - "3000:3000"
+      - "4000:4000" # For frontend ws
+    depends_on:
+      - mysql
+      - api
+      - frontend
+    volumes:
+      - ./src/api:/var/www/api
+    restart: always
+    networks:
+      - logicbreaker
+
+  mysql:
+    build:
+      context: .
+      dockerfile: ./docker/mysql/Dockerfile
+    container_name: mysql
+    restart: unless-stopped
+    ports:
+      - "${FORWARD_DB_PORT:-3306}:3306"
+    volumes:
+      - "mysql_volume:/var/lib/mysql"
+    networks:
+      - logicbreaker
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - "8888:80"
+    environment:
+      PMA_HOST: mysql
+      UPLOAD_LIMIT: 100000000 # 100 MB (in decimal)
+    networks:
+      - logicbreaker
+
+  cache:
+    image: redis:4.0.11-alpine
+    container_name: radis
+    ports:
+      - 6379:6379
+    networks:
+      - logicbreaker
+
+volumes:
+  mysql_volume:
+    driver: local
