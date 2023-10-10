@@ -5,6 +5,22 @@ cd /var/www/api
 # coping .env.local to .env
 cp .env.example .env
 
+echo "Linking storage..."
+php artisan storage:link
+echo "Done."
+
+echo "Setting storage permission..."
+chown -R www-data:www-data storage
+chmod -R 775 storage
+echo "Done."
+
+echo "Cleaning cache files..."
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+echo "Done."
+
 echo "Generating fresh key..."
 php artisan key:generate
 echo "Done."

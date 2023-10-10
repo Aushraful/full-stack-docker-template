@@ -28,6 +28,8 @@ services:
     restart: unless-stopped
     depends_on:
       - api
+    environment:
+      HOST: 0.0.0.0
     ports:
       - "5000:5000"
       - "24678:24678" # For frontend ws
