@@ -28,8 +28,6 @@ services:
     restart: unless-stopped
     depends_on:
       - api
-    environment:
-      HOST: 0.0.0.0
     ports:
       - "5000:5000"
       - "24678:24678" # For frontend ws
@@ -93,6 +91,35 @@ services:
     networks:
       - logicbreaker
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.2
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    networks:
+      - logicbreaker
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.16.2
+    container_name: kibana
+    restart: always
+    environment:
+      - elasticsearch.hosts=http://elasticsearch:9200
+    ports:
+      - '5601:5601'
+    networks:
+      - logicbreaker
+    depends_on:
+      - elasticsearch
+
 volumes:
   mysql_volume:
+    driver: local
+  elasticsearch:
     driver: local
