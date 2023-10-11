@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd /var/www/api
+cd /var/www/laravel_pjt_1
 
 # coping .env.local to .env
 cp .env.example .env

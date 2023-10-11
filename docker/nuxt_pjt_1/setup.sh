@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd /var/www/frontend
+cd /var/www/nuxt_pjt_1
 
 # coping .env.local to .env
 cp .env.example .env

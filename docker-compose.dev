@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 
 networks:
   logicbreaker:
@@ -6,60 +6,78 @@ networks:
     name: logicbreaker
 
 services:
-  api:
+  laravel_pjt_1:
     build:
-      context: .
-      dockerfile: ./docker/php/Dockerfile
-    container_name: api
+      context: ./docker/laravel_pjt_1
+      dockerfile: ./Dockerfile
+    container_name: laravel_pjt_1
     depends_on:
       - mysql
     ports:
       - 9000:9000
     volumes:
-      - ./src/api:/var/www/api
+      - ./src/laravel_pjt_1:/var/www/laravel_pjt_1
     networks:
       - logicbreaker
 
-  frontend:
+  nuxt_pjt_1:
     build:
-      context: .
-      dockerfile: ./docker/node/Dockerfile
-    container_name: frontend
+      context: ./docker/nuxt_pjt_1
+      dockerfile: ./Dockerfile
+    container_name: nuxt_pjt_1
     restart: unless-stopped
     depends_on:
-      - api
+      - laravel_pjt_1
     ports:
       - "5000:5000"
-      - "24678:24678" # For frontend ws
+      - "24678:24678" # For nuxt_pjt_1 ws
     volumes:
-      - ./src/frontend:/var/www/frontend
+      - ./src/nuxt_pjt_1:/var/www/nuxt_pjt_1
+    networks:
+      - logicbreaker
+    command: 'yarn dev'
+
+  next_pjt_1:
+    build:
+      context: ./docker/next_pjt_1
+      dockerfile: ./Dockerfile
+    container_name: next_pjt_1
+    restart: unless-stopped
+    depends_on:
+      - laravel_pjt_1
+    ports:
+      - "5555:5555"
+      # - "24678:24678" # For next_pjt_1 ws
+    volumes:
+      - ./src/next_pjt_1:/var/www/next_pjt_1
     networks:
       - logicbreaker
     command: 'yarn dev'
 
   nginx:
     build:
-      context: .
-      dockerfile: ./docker/nginx/Dockerfile
+      context: ./docker/nginx
+      dockerfile: ./Dockerfile
     container_name: nginx
     ports:
       - "8000:80"
       - "3000:3000"
-      - "4000:4000" # For frontend ws
+      - "3333:3333"
+      - "4000:4000" # For nuxt_pjt_1 ws
     depends_on:
       - mysql
-      - api
-      - frontend
+      - laravel_pjt_1
+      - nuxt_pjt_1
     volumes:
-      - ./src/api:/var/www/api
+      - ./src/laravel_pjt_1:/var/www/laravel_pjt_1
     restart: always
     networks:
       - logicbreaker
 
   mysql:
     build:
-      context: .
-      dockerfile: ./docker/mysql/Dockerfile
+      context: ./docker/mysql
+      dockerfile: ./Dockerfile
     container_name: mysql
     restart: unless-stopped
     ports:
@@ -83,7 +101,40 @@ services:
     networks:
       - logicbreaker
 
-  cache:
+  postgres:
+    container_name: postgres
+    build:
+      context: ./docker/postgres
+      dockerfile: ./Dockerfile
+    volumes:
+      - postgres_volume:/data/postgres
+    ports:
+      - "5500:80"
+    restart: unless-stopped
+    networks:
+      - logicbreaker
+  
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    # environment:
+    #   PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+    #   PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    #   PGADMIN_CONFIG_SERVER_MODE: 'False'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin_volume:/var/lib/pgadmin
+    ports:
+      - "5505:80"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - logicbreaker
+
+  radis:
     image: redis:4.0.11-alpine
     container_name: radis
     ports:
@@ -120,6 +171,10 @@ services:
 
 volumes:
   mysql_volume:
+    driver: local
+  postgres_volume:
+    driver: local
+  pgadmin_volume:
     driver: local
   elasticsearch:
     driver: local
